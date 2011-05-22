@@ -9,6 +9,7 @@ require "time"
 HN = "http://news.ycombinator.net"
 HNBEST = URI.parse "#{HN}/best"
 TIME = "%a, %d %b %Y %H:%M:%S %z"  # http://snippets.dzone.com/posts/show/450
+SELFURL = "http://hnbest.heroku.com/"
 
 configure do
   mime_type :rss, "application/rss+xml"
@@ -65,16 +66,19 @@ get "/" do
   haml :rss, :escape_html => true,
        :locals => {:link => HNBEST,
                    :last_build => Time.now.strftime(TIME),
-                   :items => parse}
+                   :items => parse,
+                   :selfurl => SELFURL}
 end
 
 __END__
 @@ rss
 !!! XML
-%rss{:version => "2.0"}
+%rss{:version => "2.0",
+     "xmlns:atom" => "http://www.w3.org/2005/Atom"}
   %channel
     %title Hacker News Best
     %link= link
+    <atom:link href="#{selfurl}" rel="self" type="application/rss+xml" />
     %description This feed contains the Hacker News Best entries.
     %lastBuildDate= last_build
     %language en
