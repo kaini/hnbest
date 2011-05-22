@@ -89,11 +89,13 @@ __END__
         %guid= item.url
         %pubDate= item.time
         %description
+          <![CDATA[
           %p
             %span= item.points
             %span points by
             %a{:href => item.userurl}= item.user
           %p
             %a{:href => item.commentsurl}= item.comments.to_s + " comments"
+          ]]>
       
 
