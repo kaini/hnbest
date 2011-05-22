@@ -10,6 +10,10 @@ HN = "http://news.ycombinator.net"
 HNBEST = URI.parse "#{HN}/best"
 TIME = "%a, %d %b %Y %H:%M:%S %z"  # http://snippets.dzone.com/posts/show/450
 
+configure do
+  mime_type :rss, "application/rss+xml"
+end
+
 class Item
   attr_accessor :url, :title, :points, :user, :userurl, :comments, :commentsurl,
                 :time
@@ -57,6 +61,7 @@ def parse
 end
 
 get "/" do
+  content_type :rss
   haml :rss, :escape_html => true,
        :locals => {:link => HNBEST,
                    :last_build => Time.now.strftime(TIME),
