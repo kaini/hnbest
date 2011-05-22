@@ -78,14 +78,14 @@ __END__
     %description This feed contains the Hacker News Best entries.
     %lastBuildDate= last_build
     %language en
-  -items.each do |item|
-    %item
-      %title= item.title
-      %link= item.url
-      %guid= item.url
-      %pubDate= item.time
-      %description
-        :cdata
-          to be done
+    -items.each do |item|
+      %item
+        %title= item.title
+        %link= item.url
+        %guid= item.url
+        %pubDate= item.time
+        %description
+          :cdata
+            to be done
       
 
