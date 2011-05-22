@@ -1,3 +1,3 @@
-require "./hnbest"
+require "hnbest"
 run Sinatra::Application
 
