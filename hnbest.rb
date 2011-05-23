@@ -11,7 +11,7 @@ require "logger"
 HN_URI = "http://news.ycombinator.net"
 HNBEST_URI = "#{HN_URI}/best"
 
-# Wed, 02 Oct 2002 15:00:00 +0200
+# 02 Oct 2002 15:00:00 +0200
 TIME_FORMAT = "%m %b %Y %H:%M:%S %z"  
 
 SELF_URI = "http://hnbest.heroku.com/rss"
