@@ -133,7 +133,8 @@ get "/rss" do
        :locals => {:link => HNBEST_URI,
                    :items => items,
                    :self_href => SELF_URI,
-                   :last_build => lu.strftime(TIME_FORMAT)}
+                   :last_build => lu,
+                   :time_format => TIME_FORMAT}
 end
 
 #################
@@ -164,14 +165,14 @@ __END__
     %link= link
     <atom:link href="#{self_href}" rel="self" type="application/rss+xml" />
     %description This feed contains the Hacker News Best entries.
-    %lastBuildDate= last_build
+    %lastBuildDate= last_build.strftime(time_format)
     %language en
     -items.each do |item|
       %item
         %title= item[:title]
         %link= item[:url]
         %guid= item[:url]
-        %pubDate= item[:post_time]
+        %pubDate= item[:post_time].strftime(time_format)
         %description
           <![CDATA[
           %p
