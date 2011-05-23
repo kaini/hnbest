@@ -14,7 +14,7 @@ HNBEST_URI = "#{HN_URI}/best"
 # http://snippets.dzone.com/posts/show/450
 TIME_FORMAT = "%a, %d %b %Y %H:%M:%S %z"  
 
-SELF_URI = "http://hnbest.heroku.com/"
+SELF_URI = "http://hnbest.heroku.com/rss"
 
 UPDATE_INTERVAL = 600
 
