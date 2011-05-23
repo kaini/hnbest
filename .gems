@@ -1,4 +1,6 @@
 sinatra
 nokogiri
 haml
+sequel
+logger
 

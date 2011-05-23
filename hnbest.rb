@@ -5,72 +5,156 @@ require "net/http"
 require "uri"
 require "haml"
 require "time"
+require "sequel"
+require "logger"
 
-HN = "http://news.ycombinator.net"
-HNBEST = URI.parse "#{HN}/best"
-TIME = "%a, %d %b %Y %H:%M:%S %z"  # http://snippets.dzone.com/posts/show/450
-SELFURL = "http://hnbest.heroku.com/"
+HN_URI = "http://news.ycombinator.net"
+HNBEST_URI = "#{HN_URI}/best"
 
-configure do
-  mime_type :rss, "application/rss+xml"
+# http://snippets.dzone.com/posts/show/450
+TIME_FORMAT = "%a, %d %b %Y %H:%M:%S %z"  
+
+SELF_URI = "http://hnbest.heroku.com/"
+
+UPDATE_INTERVAL = 600
+
+#####################
+### DATABASE PART ###
+#####################
+
+DB = Sequel.connect(ENV['DATABASE_URL'] || "sqlite:///tmp/hnbest.db")
+DB.loggers << Logger.new($stdout)
+DB.create_table? :items do
+  primary_key :id
+  String :url, :null => false
+  String :title, :null => false
+  Integer :points, :null => false
+  String :user, :null => false
+  String :userurl, :null => false
+  String :commentsurl, :null => false
+  DateTime :post_time, :null => false
+  DateTime :last_seen_time, :null => false
+end
+DB.create_table? :last_update do
+  primary_key :id
+  DateTime :last_update, :null => false
 end
 
-class Item
-  attr_accessor :url, :title, :points, :user, :userurl, :comments, :commentsurl,
-                :time
-end
-
-def parse
-  html = Net::HTTP.get HNBEST
+def update_database
+  html = Net::HTTP.get URI.parse(HNBEST_URI)
   doc = Nokogiri::HTML html
   
-  items = []
+  items = DB[:items]
   even = false
   doc.css("td.title").each do |td|
     if even
-      item = Item.new
+      item = {}
       
-      item.time = Time.now.strftime(TIME)
+      item[:title] = td.text.strip
       
-      item.title = td.text.strip
-      
-      item.url = td.css("a").first["href"]
-      if not item.url.include? "://"
-        item.url = "#{HN}/#{item.url}"
+      item[:url] = td.css("a").first["href"]
+      if not item[:url].include? "://"
+        item[:url] = "#{HN_URI}/#{item[:url]}"
       end
       
       td = td.parent.next_sibling.css("td.subtext").first
       
-      item.points = td.css("span").first.text.split(" ").first.to_i
+      item[:points] = td.css("span").first.text.split(" ").first.to_i
       
-      item.user = td.css("a").first.text.strip
-      item.userurl = td.css("a").first["href"]
-      item.userurl = "#{HN}/#{item.userurl}"
+      item[:user] = td.css("a").first.text.strip
+      item[:userurl] = td.css("a").first["href"]
+      item[:userurl] = "#{HN_URI}/#{item[:userurl]}"
       
-      item.comments = td.css("a")[1].text.split(" ").first.to_i
-      item.commentsurl = td.css("a")[1]["href"]
-      item.commentsurl = "#{HN}/#{item.commentsurl}"
+      item[:commentsurl] = td.css("a")[1]["href"]
+      item[:commentsurl] = "#{HN_URI}/#{item[:commentsurl]}"
       
-      items << item
+      updated = items.filter(:url => item[:url]).update(:last_seen_time => Time.now)
+      if updated == 0
+        item[:post_time] = Time.now
+        item[:last_seen_time] = Time.now
+        items.insert(item)
+      end
+      
       even = false
     else
       even = true
     end
   end
   
-  items
+  killtime = Time.now - UPDATE_INTERVAL
+  items.filter{last_seen_time < killtime}.delete
+  
+  last_update = DB[:last_update]
+  last_update.delete
+  last_update.insert(:last_update => Time.now)
+  
+  nil
+end
+
+def last_update
+  lu = DB[:last_update].select(:last_update).all.first
+  if lu
+    lu[:last_update]
+  else
+    Time.now - 2 * UPDATE_INTERVAL
+  end
+end
+
+def fetch_items
+  lu = last_update
+  if lu
+    if lu < Time.now - UPDATE_INTERVAL
+      update_database
+    end
+  else
+    update_database
+  end
+  
+  DB[:items].order(:post_time).all
+end
+
+####################
+### SINATRA PART ###
+####################
+
+configure do
+  mime_type :rss, "application/rss+xml"
 end
 
 get "/" do
-  content_type :rss
-  haml :rss, :escape_html => true,
-       :locals => {:link => HNBEST,
-                   :last_build => Time.now.strftime(TIME),
-                   :items => parse,
-                   :selfurl => SELFURL}
+  haml :index, :escape_html => true
 end
 
+get "/rss" do
+  content_type :rss
+  items = fetch_items
+  lu = last_update
+  haml :rss, :escape_html => true,
+       :locals => {:link => HNBEST_URI,
+                   :items => items,
+                   :self_href => SELF_URI,
+                   :last_build => lu.strftime(TIME_FORMAT)}
+end
+
+#################
+### HAML PART ###
+#################
 __END__
+@@ index
+!!! 5
+%html
+  %head
+    %title Hacker News Best RSS
+    %meta{:name => "keywords",
+          :content => "hacker, news, hackernews, rss, best"}
+    %link{:rel => "alternate",
+          :type => "application/rss+xml",
+          :title => "Hacker News Best",
+          :href => "/rss"}
+  %body
+    %h1
+      Hacker News Best
+      %a{:href => "/rss"} RSS
 @@ rss
 !!! XML
 %rss{:version => "2.0",
@@ -78,24 +162,25 @@ __END__
   %channel
     %title Hacker News Best
     %link= link
-    <atom:link href="#{selfurl}" rel="self" type="application/rss+xml" />
+    <atom:link href="#{self_href}" rel="self" type="application/rss+xml" />
     %description This feed contains the Hacker News Best entries.
     %lastBuildDate= last_build
     %language en
     -items.each do |item|
       %item
-        %title= item.title
-        %link= item.url
-        %guid= item.url
-        %pubDate= item.time
+        %title= item[:title]
+        %link= item[:url]
+        %guid= item[:url]
+        %pubDate= item[:post_time]
         %description
           <![CDATA[
           %p
-            %span= item.points
-            %span points by
-            %a{:href => item.userurl}= item.user
+            Started with
+            = item[:points]
+            points; by
+            %a{:href => item[:userurl]}= item[:user]
           %p
-            %a{:href => item.commentsurl}= item.comments.to_s + " comments"
+            %a{:href => item[:commentsurl]} Comments
           ]]>
       
 
