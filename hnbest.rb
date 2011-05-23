@@ -156,6 +156,8 @@ __END__
     %h1
       Hacker News Best
       %a{:href => "/rss"} RSS
+    %p
+      %a{:href => "https://github.com/kaini/hnbest"} Github
 @@ rss
 !!! XML
 %rss{:version => "2.0",
