@@ -1,0 +1,26 @@
+!!! XML
+%rss{version: "2.0",
+     "xmlns:atom" => "http://www.w3.org/2005/Atom"}
+  %channel
+    %title Hacker News Best
+    %link= link
+    <atom:link href="#{self_href}" rel="self" type="application/rss+xml" />
+    %description This feed contains the Hacker News Best entries.
+    %lastBuildDate= last_build.strftime(time_format)
+    %language en
+    -items.each do |item|
+      %item
+        %title= item[:title]
+        %link= item[:url]
+        %guid= item[:url]
+        %pubDate= item[:post_time].strftime(time_format)
+        %description
+          <![CDATA[
+          %p
+            Started with
+            = item[:points]
+            points; by
+            %a{href: item[:userurl]}= item[:user]
+          %p
+            %a{href: item[:commentsurl]} Comments
+          ]]>

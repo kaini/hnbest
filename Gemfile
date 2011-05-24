@@ -1,0 +1,5 @@
+gem "sinatra"
+gem "nokogiri"
+gem "haml"
+gem "sequel"
+gem "logger"
