@@ -1,12 +1,6 @@
-require "rubygems"
-require "sinatra"
-require "nokogiri"
 require "net/http"
 require "uri"
-require "haml"
 require "time"
-require "sequel"
-require "logger"
 
 HN_URI = "http://news.ycombinator.net"
 HNBEST_URI = "#{HN_URI}/best"
