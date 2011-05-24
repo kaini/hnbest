@@ -2,6 +2,10 @@ require "net/http"
 require "uri"
 require "time"
 
+
+set :haml, format: :html5
+set :haml, escape_html: true
+
 HN_URI = "http://news.ycombinator.net"
 HNBEST_URI = "#{HN_URI}/best"
 
@@ -116,68 +120,17 @@ configure do
 end
 
 get "/" do
-  haml :index, :escape_html => true
+  haml :index
 end
 
 get "/rss" do
   content_type :rss
   items = fetch_items
   lu = last_update
-  haml :rss, :escape_html => true,
+  haml :rss,
        :locals => {:link => HNBEST_URI,
                    :items => items,
                    :self_href => SELF_URI,
                    :last_build => lu,
                    :time_format => TIME_FORMAT}
 end
-
-#################
-### HAML PART ###
-#################
-__END__
-@@ index
-!!! 5
-%html
-  %head
-    %title Hacker News Best RSS
-    %meta{:name => "keywords",
-          :content => "hacker, news, hackernews, rss, best"}
-    %link{:rel => "alternate",
-          :type => "application/rss+xml",
-          :title => "Hacker News Best",
-          :href => "/rss"}
-  %body
-    %h1
-      Hacker News Best
-      %a{:href => "/rss"} RSS
-    %p
-      %a{:href => "https://github.com/kaini/hnbest"} Github
-@@ rss
-!!! XML
-%rss{:version => "2.0",
-     "xmlns:atom" => "http://www.w3.org/2005/Atom"}
-  %channel
-    %title Hacker News Best
-    %link= link
-    <atom:link href="#{self_href}" rel="self" type="application/rss+xml" />
-    %description This feed contains the Hacker News Best entries.
-    %lastBuildDate= last_build.strftime(time_format)
-    %language en
-    -items.each do |item|
-      %item
-        %title= item[:title]
-        %link= item[:url]
-        %guid= item[:url]
-        %pubDate= item[:post_time].strftime(time_format)
-        %description
-          <![CDATA[
-          %p
-            Started with
-            = item[:points]
-            points; by
-            %a{:href => item[:userurl]}= item[:user]
-          %p
-            %a{:href => item[:commentsurl]} Comments
-          ]]>
-      
-
