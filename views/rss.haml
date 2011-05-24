@@ -1,5 +1,5 @@
 !!! XML
-%rss{:version => "2.0",
+%rss{version: "2.0",
      "xmlns:atom" => "http://www.w3.org/2005/Atom"}
   %channel
     %title Hacker News Best
@@ -20,7 +20,7 @@
             Started with
             = item[:points]
             points; by
-            %a{:href => item[:userurl]}= item[:user]
+            %a{href: item[:userurl]}= item[:user]
           %p
-            %a{:href => item[:commentsurl]} Comments
+            %a{href: item[:commentsurl]} Comments
           ]]>
