@@ -4,7 +4,6 @@ require "time"
 
 require_relative "helpers"
 
-set :haml, format: :html5
 set :haml, escape_html: true
 
 HN_URI = "http://news.ycombinator.net"
