@@ -8,7 +8,7 @@ require "time"
 require "sequel"
 require "logger"
 
-HN_URI = "http://news.ycombinator.net"
+HN_URI = "http://news.ycombinator.com"
 HNBEST_URI = "#{HN_URI}/best"
 
 # 02 Oct 2002 15:00:00 +0200
@@ -101,12 +101,7 @@ def last_update
 end
 
 def fetch_items
-  lu = last_update
-  if lu
-    if lu < Time.now - UPDATE_INTERVAL
-      update_database
-    end
-  else
+  if last_update < Time.now - UPDATE_INTERVAL
     update_database
   end
   
