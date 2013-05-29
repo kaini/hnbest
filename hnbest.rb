@@ -160,7 +160,7 @@ __END__
       %a{:href => "https://github.com/kaini/hnbest"} Github
 @@ rss
 !!! XML
-%rss{:version => "2.0"}
+%rss{:version => "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom"}
   %channel
     %title Hacker News Best
     %link= link
