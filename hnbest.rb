@@ -8,7 +8,7 @@ require "time"
 require "sequel"
 require "logger"
 
-HN_URI = "http://news.ycombinator.com"
+HN_URI = "https://news.ycombinator.com"
 HNBEST_URI = "#{HN_URI}/best"
 
 # 02 Oct 2002 15:00:00 +0200
@@ -41,8 +41,13 @@ DB.create_table? :last_update do
 end
 
 def update_database
-  html = Net::HTTP.get URI.parse(HNBEST_URI)
+  uri = URI.parse(HNBEST_URI)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  html = http.request(Net::HTTP::Get.new(uri.request_uri)).body
+
   doc = Nokogiri::HTML html
+  puts doc
   
   items = DB[:items]
   even = false
@@ -155,8 +160,7 @@ __END__
       %a{:href => "https://github.com/kaini/hnbest"} Github
 @@ rss
 !!! XML
-%rss{:version => "2.0",
-     "xmlns:atom" => "http://www.w3.org/2005/Atom"}
+%rss{:version => "2.0"}
   %channel
     %title Hacker News Best
     %link= link
