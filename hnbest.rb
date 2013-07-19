@@ -12,7 +12,7 @@ HN_URI = "https://news.ycombinator.com"
 HNBEST_URI = "#{HN_URI}/best"
 
 # 02 Oct 2002 15:00:00 +0200
-TIME_FORMAT = "%m %b %Y %H:%M:%S %z"  
+TIME_FORMAT = "%d %b %Y %H:%M:%S %z"  
 
 SELF_URI = "http://hnbest.herokuapp.com/rss"
 
