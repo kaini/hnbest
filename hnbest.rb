@@ -29,6 +29,7 @@ DB.create_table? :items do
   String :url, :null => false
   String :title, :null => false
   Integer :points, :null => false
+  Integer :real_points, :null => false
   String :user, :null => false
   String :userurl, :null => false
   String :commentsurl, :null => false
@@ -47,7 +48,6 @@ def update_database
   html = http.request(Net::HTTP::Get.new(uri.request_uri)).body
 
   doc = Nokogiri::HTML html
-  puts doc
   
   items = DB[:items]
   even = false
@@ -65,6 +65,7 @@ def update_database
       td = td.parent.next_sibling.css("td.subtext").first
       
       item[:points] = td.css("span").first.text.split(" ").first.to_i
+      item[:real_points] = item[:points]
       
       item[:user] = td.css("a").first.text.strip
       item[:userurl] = td.css("a").first["href"]
@@ -73,7 +74,7 @@ def update_database
       item[:commentsurl] = td.css("a")[1]["href"]
       item[:commentsurl] = "#{HN_URI}/#{item[:commentsurl]}"
       
-      updated = items.filter(:url => item[:url]).update(:last_seen_time => Time.now)
+      updated = items.filter(:url => item[:url]).update(:last_seen_time => Time.now, :real_points => item[:real_points])
       if updated == 0
         item[:post_time] = Time.now
         item[:last_seen_time] = Time.now
@@ -105,12 +106,12 @@ def last_update
   end
 end
 
-def fetch_items
+def fetch_items(count)
   if last_update < Time.now - UPDATE_INTERVAL
     update_database
   end
   
-  DB[:items].order(:post_time).all
+  DB[:items].order(:real_points).limit(count).order(:post_time).all
 end
 
 ####################
@@ -126,8 +127,14 @@ get "/" do
 end
 
 get "/rss" do
+  if params[:count]
+    item_count = params[:count].to_i
+  else
+    item_count = 30
+  end
+
   content_type :rss
-  items = fetch_items
+  items = fetch_items item_count
   lu = last_update
   haml :rss, :escape_html => true,
        :locals => {:link => HNBEST_URI,
@@ -156,6 +163,8 @@ __END__
     %h1
       Hacker News Best
       %a{:href => "/rss"} RSS
+    %p
+      You can append "?count=10" to reduce the amount of news items. The default is 30.
     %p
       %a{:href => "https://github.com/kaini/hnbest"} Github
 @@ rss
