@@ -132,6 +132,9 @@ get "/rss" do
   else
     item_count = 30
   end
+  if item_count <= 0
+    item_count = 30
+  end
 
   content_type :rss
   items = fetch_items item_count
