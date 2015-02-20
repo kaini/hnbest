@@ -111,7 +111,7 @@ def fetch_items(count)
     update_database
   end
   
-  DB[:items].order(:real_points).limit(count).order(:post_time).all
+  DB.from(DB[:items].order(Sequel.desc(:real_points)).limit(count).as(:posts)).order(Sequel.desc(:post_time)).all
 end
 
 ####################
