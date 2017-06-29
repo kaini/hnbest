@@ -144,7 +144,8 @@ get "/rss" do
                    :items => items,
                    :self_href => SELF_URI,
                    :last_build => lu,
-                   :time_format => TIME_FORMAT}
+                   :time_format => TIME_FORMAT,
+                   :link_comments => params[:link_comments] == 1}
 end
 
 #################
@@ -167,7 +168,9 @@ __END__
       Hacker News Best
       %a{:href => "/rss"} RSS
     %p
-      You can append "?count=10" to reduce the amount of news items. The default is 30.
+      You can append the GET-parameter "count=n" to reduce the amount of news items to n. The default is 30.
+    %p
+      You can append the GET-parameter "link_comments=1" to make the RSS entries point to the discussion instead of the submitted content. The default is to link to the submitted URL.
     %p
       %a{:href => "https://github.com/kaini/hnbest"} Github
 @@ rss
@@ -183,18 +186,20 @@ __END__
     -items.each do |item|
       %item
         %title= item[:title]
-        %link= item[:url]
+        %link= link_comments ? item[:commentsurl] : item[:url]
         %guid= item[:url]
         %pubDate= item[:post_time].strftime(time_format)
         %description
           <![CDATA[
+          %h1
+            %a{:href => item[:url]}= item[:title]
+          %p
+            %a{:href => item[:commentsurl]} Comments
           %p
             Started with
             = item[:points]
             points; by
             %a{:href => item[:userurl]}= item[:user]
-          %p
-            %a{:href => item[:commentsurl]} Comments
           ]]>
       
 
