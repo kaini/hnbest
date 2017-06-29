@@ -145,7 +145,7 @@ get "/rss" do
                    :self_href => SELF_URI,
                    :last_build => lu,
                    :time_format => TIME_FORMAT,
-                   :link_comments => params[:link_comments] == 1}
+                   :link_comments => params[:link_comments].to_i == 1}
 end
 
 #################
