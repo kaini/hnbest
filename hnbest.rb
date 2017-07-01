@@ -191,7 +191,7 @@ __END__
         %pubDate= item[:post_time].strftime(time_format)
         %description
           <![CDATA[
-          %h1
+          %p
             %a{:href => item[:url]}= item[:title]
           %p
             %a{:href => item[:commentsurl]} Comments
