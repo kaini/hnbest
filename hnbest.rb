@@ -187,7 +187,7 @@ __END__
       %item
         %title= item[:title]
         %link= link_comments ? item[:commentsurl] : item[:url]
-        %guid= item[:url]
+        %guid= link_comments ? item[:commentsurl] : item[:url]
         %pubDate= item[:post_time].strftime(time_format)
         %description
           <![CDATA[
